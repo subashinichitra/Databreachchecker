@@ -1,130 +1,303 @@
-<div align="center">
 
-<img src="assets/logo.png" width="300" height="auto">
+---
 
-**Breach-Checker** is a tool to check emails and passwords for security breaches. Source: (https://haveibeenpwned.com)
+# API Health Checker
 
-</div>
+API Health Checker is a web application that monitors HTTP APIs and reports their status over time.
+It regularly sends requests to configured endpoints and records whether they are **up**, **slow**, or **down**, so you can catch issues early.
 
-## **Installation**
+---
 
-**Using** _`poetry`_
+## Features
 
+* Monitor multiple APIs with different HTTP methods (GET/POST)
+* Configure check intervals and timeouts per endpoint
+* Multi-region checks (run the same check from different locations/servers)
+* Email alerts when an API goes down or recovers
+* Simple dashboard showing current status and recent history
+* Basic response time metrics for each API
+* Historical data for the last 7 days (or more, depending on configuration)
+
+---
+
+## Prerequisites
+
+* Python 3.11 or later
+* `pip` (Python package manager)
+* Git (to clone the repository)
+* A supported database (SQLite by default; no separate install required)
+
+Optional (for production):
+
+* A WSGI/ASGI server such as Gunicorn or Uvicorn
+* A reverse proxy such as Nginx
+
+---
+
+## Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <your-repo-url>.git
+   cd <your-project-folder>
+   ```
+
+2. **Create and activate a virtual environment**
+
+   ```bash
+   python -m venv venv
+   # Windows
+   venv\Scripts\activate
+   # Linux / macOS
+   source venv/bin/activate
+   ```
+
+3. **Install dependencies**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Apply database migrations**
+
+   ```bash
+   python manage.py migrate
+   ```
+
+5. **Create a superuser (optional, for admin access)**
+
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+6. **Run the development server**
+
+   ```bash
+   python manage.py runserver
+   ```
+
+Then open your browser at:
+
+```text
+http://127.0.0.1:8000/
 ```
-git clone https://github.com/x404xx/Breach-Checker.git
-cd Breach-Checker
-poetry shell
-poetry install
+
+---
+
+## Development
+
+* Start the server with:
+
+  ```bash
+  python manage.py runserver
+  ```
+
+* Code changes in views, templates, and static files are picked up automatically in development.
+
+* Use the Django admin at `/admin/` to:
+
+  * Manage users
+  * View or edit stored checks (if you exposed them in admin)
+
+When you add new models or change existing ones:
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
 ```
 
-**Using** _`pip`_
+---
 
+## Building
+
+For a simple local/demo setup, there is no special build step beyond installing dependencies and running the server.
+
+For a production-like setup:
+
+1. Set `DEBUG = False` and configure `ALLOWED_HOSTS` in `settings.py`.
+
+2. Configure your database (if you want PostgreSQL or another DB instead of SQLite).
+
+3. Collect static files:
+
+   ```bash
+   python manage.py collectstatic
+   ```
+
+4. Run the app behind a production server (e.g. Gunicorn + Nginx or Uvicorn + Nginx).
+
+---
+
+## Project Structure
+
+Example structure (your names may differ slightly):
+
+```text
+api_health_checker/
+├─ manage.py
+├─ api_health_checker/        # Django project settings
+│  ├─ __init__.py
+│  ├─ settings.py
+│  ├─ urls.py
+│  └─ wsgi.py / asgi.py
+├─ checker/                   # Main app for health checks
+│  ├─ migrations/
+│  ├─ templates/checker/      # HTML templates
+│  ├─ static/checker/         # CSS / JS / images
+│  ├─ models.py               # Database models (API, CheckResult, etc.)
+│  ├─ views.py                # Web views and API views
+│  ├─ urls.py                 # App-specific URLs
+│  └─ tasks.py                # Background/cron-style health checks (if used)
+├─ requirements.txt
+└─ README.md
 ```
-git clone https://github.com/x404xx/Breach-Checker.git
-cd Breach-Checker
-virtualenv env
-env/scripts/activate
-pip install -r requirements.txt
-```
 
-## Help
+You can adjust folder names to match your actual project.
 
-```
-usage: python -m bchecker [-h] [-pu PROXY_URL] [-e EMAIL] [-m {1,2}] [-t {1,2}]
-                   [-p PASSWORD] [-v] [-f FILENAME]
-
-Email and password checker for leaked data breaches!
-
-options:
-  -h, --help            show this help message and exit
-  -pu PROXY_URL, --proxy_url PROXY_URL
-                        Proxy URL. Example: (http://username:password@host:port or
-                        socks5://username:password@host:port)
-  -e EMAIL, --email EMAIL
-                        Email that should be checked!
-  -m {1,2}, --mode {1,2}
-                        (1) Email Checker (2) Password Checker
-  -t {1,2}, --task_type {1,2}
-                        (1) Single Check (2) Mass Check
-  -p PASSWORD, --password PASSWORD
-                        Password that should be checked!
-  -v, --verbose         Get breaches details!
-  -f FILENAME, --filename FILENAME
-                        List of passwords for mass checking!
-```
+---
 
 ## Usage
 
--   _**`Simple execute. Just follow the given steps in the terminal`**_
+1. **Open the dashboard**
 
-```python
-python -m bchecker
-```
+   Go to:
 
--   _**`Check email with the command`**_
+   ```text
+   http://127.0.0.1:8000/
+   ```
 
-```python
-python -m bchecker -m 1 -e 'target email'
-```
+2. **Log in (if required)**
+   Use the superuser or a normal user depending on how you configured access.
 
--   _**`Check a single password with the command`**_
+3. **Add a new API check**
 
-```python
-python -m bchecker -m 2 -t 1 -p 'target password'
-```
+   * Enter the API name (e.g. “User Service – Production”)
+   * Enter the URL (e.g. `https://api.example.com/health`)
+   * Choose HTTP method (GET/POST)
+   * Configure:
 
--   _**`Check the mass password with the command using a text file`**_
+     * Check interval (e.g. every 1/5/10 minutes)
+     * Timeout in seconds
+     * Region/source (if you support multi-region)
+   * Set alert email address if you want notifications
 
-```python
-python -m bchecker -m 2 -t 2 -f 'your text filename that contains a password line by line'
-```
+4. **View status**
 
--   [x] **Proxy**: You can also use a proxy by using the command `-pu socks5://username:password@host:port`
+   * Dashboard shows:
 
-## Example Output
+     * Current status: Up / Down / Slow
+     * Last checked time
+     * Average response time
 
--   **Email check with verbose**: This command `-v` will print information about where the data breaches have been leaked.
-    > Verbose mode only supports email checking; it does not support password checking.
+5. **View history**
 
-```json
-{
-    "count": 2,
-    "email": "johnny.rotten@yahoo.com",
-    "breaches": [
-        {
-            "name": "Collection1",
-            "breachDate": "7/01/2019",
-            "description": "In January 2019, a large collection of credential stuffing lists (combinations of email addresses and passwords used to hijack accounts on other services) was discovered being distributed on a popular hacking forum. The data contained almost 2.7 billion records including 773 million unique email addresses alongside passwords those addresses had used on other breached services. Full details on the incident and how to search the breached passwords are provided in the blog post The 773
-Million Record \"Collection #1\" Data Breach.",
-            "compromised": "Email addresses, Passwords"
-        },
-        {
-            "name": "VerificationsIO",
-            "breachDate": "25/02/2019",
-            "description": "In February 2019, the email address validation service verifications.io suffered a data breach. Discovered by Bob Diachenko and Vinny Troia, the breach was due to the data being stored in a MongoDB instance left publicly facing without a password and resulted in 763 million unique email addresses being exposed. Many records within the data also included additional personal attributes such as names,
-phone numbers, IP addresses, dates of birth and genders. No passwords were included in the data. The Verifications.io website went offline during the disclosure process, although an archived copy remains viewable.",
-            "compromised": "Dates of birth, Email addresses, Employers, Genders, Geographic locations, IP addresses, Job titles, Names, Phone numbers, Physical addresses"
-        }
-    ]
-}
-```
+   * Click into a specific API to see recent check results and trends (e.g. last 7 days).
 
-<div align="center">
+---
 
-**Email check without verbose**
+## API Endpoints
 
-<img src="assets/withoutverbose.png" width="600" height="auto">
+Exact paths may differ, but a typical setup looks like this:
 
-**Password single check**
+* `GET /api/health/`
+  Simple health endpoint for the API Health Checker itself.
 
-<img src="assets/singlepass.png" width="600" height="auto">
+* `GET /api/checks/`
+  List all configured API checks.
 
-**Password with mass check**
+* `POST /api/checks/`
+  Create a new API check.
+  Example body:
 
-<img src="assets/masspass.png" width="600" height="auto">
+  ```json
+  {
+    "name": "User Service - Prod",
+    "url": "https://api.example.com/health",
+    "method": "GET",
+    "interval_seconds": 60,
+    "timeout_seconds": 5,
+    "region": "ap-south-1",
+    "alert_email": "you@example.com"
+  }
+  ```
 
-</div>
+* `GET /api/checks/<id>/`
+  Get details of a single check.
 
-## **Legal Disclaimer**
+* `GET /api/checks/<id>/history/`
+  Get recent check results for a single API.
 
-> This was made for educational purposes only, nobody which directly involved in this project is responsible for any damages caused. **_You are responsible for your actions._**
+* `POST /api/checks/<id>/run/`
+  Trigger an on-demand check for a specific API (useful for testing).
+
+Adjust the paths to match your actual `urls.py`. If you want, you can list the real paths exactly as they are in your code.
+
+---
+
+## Performance Optimization
+
+Some tips to keep checks fast and efficient:
+
+* **Use background jobs**
+  Run the health checks via a scheduled task (e.g. Celery + Beat, cron jobs, or a custom scheduler) instead of blocking web requests.
+
+* **Set sensible intervals**
+  Very frequent checks on many APIs can increase load. Start with 30–60 seconds for critical services and higher intervals for less important ones.
+
+* **Use timeouts**
+  Always set timeouts on HTTP requests so slow endpoints don’t block your worker.
+
+* **Limit stored history**
+  Keep only as much historical data as you need (e.g. 7–30 days) and archive or delete older rows.
+
+* **Index database fields**
+  Add indexes on fields you filter by often (e.g. `api_id`, `created_at`) to speed up history queries.
+
+---
+
+## Troubleshooting
+
+**Server doesn’t start / migration errors**
+
+* Run:
+
+  ```bash
+  python manage.py makemigrations
+  python manage.py migrate
+  ```
+* Check that your database settings in `settings.py` are correct.
+
+---
+
+**Static files (CSS/JS) not loading**
+
+* In development, make sure `DEBUG = True`.
+
+* In production, run:
+
+  ```bash
+  python manage.py collectstatic
+  ```
+
+* Confirm your web server is serving the `STATIC_ROOT` directory.
+
+---
+
+**Emails are not sending**
+
+* Verify email configuration in `settings.py` (`EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, etc.).
+* Test sending a simple email from the Django shell to confirm setup.
+
+---
+
+**API checks always fail**
+
+* Check that the URL is correct and reachable from the server running the checks.
+* Verify you are using the correct HTTP method (GET/POST).
+* Increase timeout if the endpoint is slow.
+* If auth is required, make sure headers or tokens are being sent correctly.
+
+---
+
+
