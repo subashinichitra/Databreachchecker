@@ -1,49 +1,46 @@
 
 ---
 
-# API Health Checker
+# DATABREACH CHECKER
 
-API Health Checker is a web application that monitors HTTP APIs and reports their status over time.
-It regularly sends requests to configured endpoints and records whether they are **up**, **slow**, or **down**, so you can catch issues early.
-
----
-
-## Features
-
-* Monitor multiple APIs with different HTTP methods (GET/POST)
-* Configure check intervals and timeouts per endpoint
-* Multi-region checks (run the same check from different locations/servers)
-* Email alerts when an API goes down or recovers
-* Simple dashboard showing current status and recent history
-* Basic response time metrics for each API
-* Historical data for the last 7 days (or more, depending on configuration)
+Databreach Checker is a simple Python tool that helps you check if an **email** or **password** has appeared in known data breaches.
+It’s mainly for personal security checks and learning, not for attacking or abusing other people’s data.
 
 ---
 
-## Prerequisites
+## FEATURES
 
-* Python 3.11 or later
-* `pip` (Python package manager)
-* Git (to clone the repository)
-* A supported database (SQLite by default; no separate install required)
-
-Optional (for production):
-
-* A WSGI/ASGI server such as Gunicorn or Uvicorn
-* A reverse proxy such as Nginx
+* Check if an **email address** has been leaked in a known data breach
+* Check if a **password** appears in leaked password lists
+* Support for **single** and **mass** (file-based) password checks
+* Optional **proxy** support for network routing
+* Simple **CLI interface** (run from terminal)
+* Lightweight and easy to run locally
 
 ---
 
-## Installation
+## PREREQUISITES
+
+* Python **3.11** or later
+* `pip` installed
+* Git (if you clone using git)
+
+Optional:
+
+* A text editor or IDE (VS Code, PyCharm, etc.)
+
+---
+
+## INSTALLATION
 
 1. **Clone the repository**
 
    ```bash
-   git clone <your-repo-url>.git
-   cd <your-project-folder>
+   git clone https://github.com/subashinichitra/Databreachchecker.git
+   cd Databreachchecker
    ```
 
-2. **Create and activate a virtual environment**
+2. **Create and activate virtual environment**
 
    ```bash
    python -m venv venv
@@ -59,244 +56,172 @@ Optional (for production):
    pip install -r requirements.txt
    ```
 
-4. **Apply database migrations**
-
-   ```bash
-   python manage.py migrate
-   ```
-
-5. **Create a superuser (optional, for admin access)**
-
-   ```bash
-   python manage.py createsuperuser
-   ```
-
-6. **Run the development server**
-
-   ```bash
-   python manage.py runserver
-   ```
-
-Then open your browser at:
-
-```text
-http://127.0.0.1:8000/
-```
+That’s it. After this, you can run the tool.
 
 ---
 
-## Development
+## DEVELOPMENT
 
-* Start the server with:
+Basic workflow if you want to modify or extend the project:
+
+* Edit Python files inside the main package (for example, `bchecker/`).
+
+* Run the tool after each change to test behaviour:
 
   ```bash
-  python manage.py runserver
+  python -m bchecker
   ```
 
-* Code changes in views, templates, and static files are picked up automatically in development.
+* Keep JSON files like `mailleaks.json` and `passleaks.json` as data sources or caches; avoid editing them manually unless you know what you’re doing.
 
-* Use the Django admin at `/admin/` to:
+* Use a separate branch if you are experimenting with new features.
 
-  * Manage users
-  * View or edit stored checks (if you exposed them in admin)
+---
 
-When you add new models or change existing ones:
+## BUILDING
+
+This project is a **Python CLI tool**, so there is no heavy “build” step.
+
+Possible “build-style” actions:
+
+* Create a **standalone executable** (optional) using tools like `pyinstaller` if you want to share it with non-Python users.
+* Package it as a Python package (`setup.py` / `pyproject.toml`) if you plan to publish it.
+
+For normal use, you just install dependencies and run it with Python.
+
+---
+
+## PROJECT STRUCTURE
+
+Example structure (may vary slightly):
+
+```text
+Databreachchecker/
+├─ bchecker/              # Main Python package (core logic & CLI)
+│  ├─ __init__.py
+│  ├─ main.py             # Entry point for python -m bchecker
+│  ├─ cli.py              # Argument parsing and commands (if present)
+│  └─ utils.py            # Helper functions (if present)
+├─ mailleaks.json         # Email breach data / cache
+├─ passleaks.json         # Password breach data / cache
+├─ savedone.json          # Internal state / cache
+├─ masspass.txt           # Example file for batch password checks
+├─ requirements.txt       # Dependencies
+└─ README.md              # Project documentation
+```
+
+Adjust the filenames if your repo uses slightly different names.
+
+---
+
+## USAGE
+
+### 1. Interactive mode
+
+Run the tool and follow the prompts:
 
 ```bash
-python manage.py makemigrations
-python manage.py migrate
+python -m bchecker
 ```
 
----
-
-## Building
-
-For a simple local/demo setup, there is no special build step beyond installing dependencies and running the server.
-
-For a production-like setup:
-
-1. Set `DEBUG = False` and configure `ALLOWED_HOSTS` in `settings.py`.
-
-2. Configure your database (if you want PostgreSQL or another DB instead of SQLite).
-
-3. Collect static files:
-
-   ```bash
-   python manage.py collectstatic
-   ```
-
-4. Run the app behind a production server (e.g. Gunicorn + Nginx or Uvicorn + Nginx).
+You’ll be asked what you want to check (email or password), and then to enter the value.
 
 ---
 
-## Project Structure
+### 2. Check a single email
 
-Example structure (your names may differ slightly):
-
-```text
-api_health_checker/
-├─ manage.py
-├─ api_health_checker/        # Django project settings
-│  ├─ __init__.py
-│  ├─ settings.py
-│  ├─ urls.py
-│  └─ wsgi.py / asgi.py
-├─ checker/                   # Main app for health checks
-│  ├─ migrations/
-│  ├─ templates/checker/      # HTML templates
-│  ├─ static/checker/         # CSS / JS / images
-│  ├─ models.py               # Database models (API, CheckResult, etc.)
-│  ├─ views.py                # Web views and API views
-│  ├─ urls.py                 # App-specific URLs
-│  └─ tasks.py                # Background/cron-style health checks (if used)
-├─ requirements.txt
-└─ README.md
+```bash
+python -m bchecker -m 1 -e "user@example.com"
 ```
 
-You can adjust folder names to match your actual project.
+### 3. Check a single password
+
+```bash
+python -m bchecker -m 2 -t 1 -p "your_password_here"
+```
+
+### 4. Check multiple passwords from a file
+
+Create a text file (for example, `masspass.txt`) with **one password per line**, then:
+
+```bash
+python -m bchecker -m 2 -t 2 -f masspass.txt
+```
+
+If supported in your version, you can also use `-pu` to pass a proxy URL.
 
 ---
 
-## Usage
+## API ENDPOINTS
 
-1. **Open the dashboard**
+This project is a **local CLI tool**, not a web service, so it does **not expose HTTP API endpoints** out of the box.
 
-   Go to:
+If you later wrap it in a web API, you might have endpoints like:
 
-   ```text
-   http://127.0.0.1:8000/
-   ```
+* `POST /check/email` → check if an email is breached
+* `POST /check/password` → check if a password is breached
 
-2. **Log in (if required)**
-   Use the superuser or a normal user depending on how you configured access.
-
-3. **Add a new API check**
-
-   * Enter the API name (e.g. “User Service – Production”)
-   * Enter the URL (e.g. `https://api.example.com/health`)
-   * Choose HTTP method (GET/POST)
-   * Configure:
-
-     * Check interval (e.g. every 1/5/10 minutes)
-     * Timeout in seconds
-     * Region/source (if you support multi-region)
-   * Set alert email address if you want notifications
-
-4. **View status**
-
-   * Dashboard shows:
-
-     * Current status: Up / Down / Slow
-     * Last checked time
-     * Average response time
-
-5. **View history**
-
-   * Click into a specific API to see recent check results and trends (e.g. last 7 days).
+For now, all interaction happens through the **command line**, not HTTP.
 
 ---
 
-## API Endpoints
+## PERFORMANCE OPTIMIZATION
 
-Exact paths may differ, but a typical setup looks like this:
+* Use **mass check** mode for large lists of passwords instead of checking one by one manually.
+* Avoid unnecessarily large input files if you only need to test a few values.
+* Keep breach data files (`mailleaks.json`, `passleaks.json`) on a **fast local drive**.
+* If you add network-based lookups in the future, use:
 
-* `GET /api/health/`
-  Simple health endpoint for the API Health Checker itself.
-
-* `GET /api/checks/`
-  List all configured API checks.
-
-* `POST /api/checks/`
-  Create a new API check.
-  Example body:
-
-  ```json
-  {
-    "name": "User Service - Prod",
-    "url": "https://api.example.com/health",
-    "method": "GET",
-    "interval_seconds": 60,
-    "timeout_seconds": 5,
-    "region": "ap-south-1",
-    "alert_email": "you@example.com"
-  }
-  ```
-
-* `GET /api/checks/<id>/`
-  Get details of a single check.
-
-* `GET /api/checks/<id>/history/`
-  Get recent check results for a single API.
-
-* `POST /api/checks/<id>/run/`
-  Trigger an on-demand check for a specific API (useful for testing).
-
-Adjust the paths to match your actual `urls.py`. If you want, you can list the real paths exactly as they are in your code.
+  * Timeouts on HTTP requests
+  * Caching of repeated results
+  * Batched queries where possible
 
 ---
 
-## Performance Optimization
+## TROUBLESHOOTING
 
-Some tips to keep checks fast and efficient:
+**1. `ModuleNotFoundError` or import errors**
 
-* **Use background jobs**
-  Run the health checks via a scheduled task (e.g. Celery + Beat, cron jobs, or a custom scheduler) instead of blocking web requests.
-
-* **Set sensible intervals**
-  Very frequent checks on many APIs can increase load. Start with 30–60 seconds for critical services and higher intervals for less important ones.
-
-* **Use timeouts**
-  Always set timeouts on HTTP requests so slow endpoints don’t block your worker.
-
-* **Limit stored history**
-  Keep only as much historical data as you need (e.g. 7–30 days) and archive or delete older rows.
-
-* **Index database fields**
-  Add indexes on fields you filter by often (e.g. `api_id`, `created_at`) to speed up history queries.
-
----
-
-## Troubleshooting
-
-**Server doesn’t start / migration errors**
-
-* Run:
+* Make sure you are **inside the project folder** and the virtual environment is activated:
 
   ```bash
-  python manage.py makemigrations
-  python manage.py migrate
+  cd Databreachchecker
+  venv\Scripts\activate    # or source venv/bin/activate
   ```
-* Check that your database settings in `settings.py` are correct.
 
 ---
 
-**Static files (CSS/JS) not loading**
+**2. `python -m bchecker` doesn’t work**
 
-* In development, make sure `DEBUG = True`.
+* Check that `bchecker` is a **Python package** (it should have an `__init__.py`).
+* Make sure you run the command from the folder that contains the `bchecker` directory.
 
-* In production, run:
+---
+
+**3. No output or tool exits immediately**
+
+* Run with the CLI options instead of pure interactive mode, for example:
 
   ```bash
-  python manage.py collectstatic
+  python -m bchecker -m 1 -e "test@example.com"
   ```
 
-* Confirm your web server is serving the `STATIC_ROOT` directory.
+---
+
+**4. Strange results or empty breach data**
+
+* Confirm that the JSON data files (`mailleaks.json`, `passleaks.json`) are present and not corrupted.
+* If you changed them manually, restore them from a fresh clone of the repository.
 
 ---
 
-**Emails are not sending**
+**5. Proxy issues**
 
-* Verify email configuration in `settings.py` (`EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, etc.).
-* Test sending a simple email from the Django shell to confirm setup.
+* Check your proxy URL format:
 
----
-
-**API checks always fail**
-
-* Check that the URL is correct and reachable from the server running the checks.
-* Verify you are using the correct HTTP method (GET/POST).
-* Increase timeout if the endpoint is slow.
-* If auth is required, make sure headers or tokens are being sent correctly.
+  * `http://user:pass@host:port`
+  * `socks5://user:pass@host:port`
+* If checks fail only with proxy enabled, try running without `-pu` to see if the problem is the proxy itself.
 
 ---
 
